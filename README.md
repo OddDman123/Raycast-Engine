@@ -3,9 +3,9 @@ Simple Project attempting to create a 3d environment using the ray casting metho
 
 
 ## TODO:
-Add lighting, farther lines are darker
-Add floor & ceiling. 
-Add texturing to the walls
-Add entity that'll follow you
-Add object you can interact with
-Add a gun
+<p>Add lighting, farther lines are darker.<br>
+Add floor & ceiling.<br> 
+Add texturing to the walls.<br>
+Add entity that'll follow you.<br>
+Add object you can interact wit.h<br>
+Add a gun</p>
