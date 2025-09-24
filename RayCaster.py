@@ -38,10 +38,12 @@ class Raycaster:
                 wall_percent = int((ray.wall_hit_y % TILESIZE)) / TILESIZE
 
             texture_x =  (texture.get_width() * wall_percent)
-            RES / TILESIZE
+            
             texture_slice = texture.subsurface((texture_x, 0, 1, texture.get_height()))
 
-            scaled_texture_slice = pygame.transform.scale(texture_slice, (1, line_height))
+            scaled_texture_slice = pygame.transform.scale(texture_slice, (RES, line_height))
+            scaled_texture_slice.convert_alpha()
+            scaled_texture_slice.fill((ray.color, ray.color, ray.color), special_flags=pygame.BLEND_RGBA_MIN)
 
             screen.blit(scaled_texture_slice, (counter * RES, draw_begin))
 

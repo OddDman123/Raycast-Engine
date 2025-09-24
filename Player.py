@@ -5,8 +5,8 @@ from Settings import *
 
 class Player:
     def __init__(self, new_map):
-        self.x = WINDOW_WIDTH / 2
-        self.y = WINDOW_HEIGHT / 2
+        self.x = COLS * TILESIZE / 2
+        self.y = ROWS * TILESIZE / 2
         # self.radius = 5
 
         self.turnDirection = 0

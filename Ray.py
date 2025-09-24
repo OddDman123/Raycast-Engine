@@ -28,6 +28,7 @@ class Ray:
 
         self.distance = 0
         self.verticle = False
+        self.color = 255
 
     def cast(self):
         ## Check Horizontol collisions
@@ -125,15 +126,18 @@ class Ray:
         if horizontal_dist < vertical_dist:
             self.wall_hit_x = horizontal_hit_x
             self.wall_hit_y = horizontal_hit_y
-            
             self.distance = horizontal_dist
-        
+            self.color = 160
         elif vertical_dist < horizontal_dist:
             self.wall_hit_x = vertical_hit_x
             self.wall_hit_y = vertical_hit_y
             self.verticle = True
             self.distance = vertical_dist
-        
+            self.color = 150
+
+        self.color *= (LIGHTLEVEL / self.distance)
+        if self.color > 255:
+            self.color = 255
         self.distance *= math.cos(self.player.rotation_angle - self.ray_angle)
 
     def draw_ray(self, screen):

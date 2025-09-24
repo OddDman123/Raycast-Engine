@@ -8,7 +8,7 @@ import pygame
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
 wall_texture = pygame.image.load('bricks.png')
-wall_texture.convert()
+wall_texture.convert_alpha()
 
 map = Map()
 player = Player(map)
