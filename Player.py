@@ -1,18 +1,21 @@
 import pygame
 import math
+from Map import Map
 from Settings import *
 
 class Player:
-    def __init__(self):
+    def __init__(self, new_map):
         self.x = WINDOW_WIDTH / 2
         self.y = WINDOW_HEIGHT / 2
-        self.radius = 5
+        # self.radius = 5
 
         self.turnDirection = 0
         self.walkDirection = 0
         self.strafeDirection = 0
 
         self.rotation_angle = -90 * (math.pi / 180)
+        
+        self.map = new_map
 
         ## Player Stats
         self.use_mouse : bool = False
@@ -50,19 +53,25 @@ class Player:
             self.rotation_angle += self.turnDirection * self.rotation_speed * delta * self.mouse_sens
         else:
             self.rotation_angle += self.turnDirection * self.rotation_speed * delta
-        # wall_check_x = self.x + math.cos(self.rotation_angle + (90 * math.pi / 180)) * self.move_speed
-        # wall_check_y = self.y + math.sine(self.rotation_angle + (90 * math.pi / 180)) * self.move_speed
 
-        self.x += self.walkDirection * math.cos(self.rotation_angle) * self.move_speed * delta 
-        self.y += self.walkDirection * math.sin(self.rotation_angle) * self.move_speed * delta 
-        self.x += self.strafeDirection * math.cos(self.rotation_angle + (90 * math.pi / 180)) * self.move_speed * delta
-        self.y += self.strafeDirection * math.sin(self.rotation_angle + (90 * math.pi / 180)) * self.move_speed * delta
-            
+        if self.walkDirection:
+            if not self.map.has_wall_at(self.x + self.walkDirection * math.cos(self.rotation_angle) * self.move_speed * delta, self.y):
+                self.x += self.walkDirection * math.cos(self.rotation_angle) * self.move_speed * delta
+            if not self.map.has_wall_at(self.x, self.y + self.walkDirection * math.sin(self.rotation_angle) * self.move_speed * delta):
+                self.y += self.walkDirection * math.sin(self.rotation_angle) * self.move_speed * delta
+        
+        if self.strafeDirection:
+            if not self.map.has_wall_at(self.x + self.strafeDirection * math.cos(self.rotation_angle + (90 * math.pi / 180)) * self.move_speed * delta, self.y):
+                self.x += self.strafeDirection * math.cos(self.rotation_angle + (90 * math.pi / 180)) * self.move_speed * delta
+            if not self.map.has_wall_at(self.x, self.y + self.strafeDirection * math.sin(self.rotation_angle + (90 * math.pi / 180)) * self.move_speed * delta):
+                self.y += self.strafeDirection * math.sin(self.rotation_angle + (90 * math.pi / 180)) * self.move_speed * delta
 
-    def move_player(self, x, y):
-        self.x += x
-        self.y += y
-    def draw_player(self,screen):
-        pygame.draw.circle(screen, (0,255,40), (self.x,self.y), self.radius)
 
-        pygame.draw.line(screen,(255, 0, 0), (self.x, self.y), (self.x + math.cos(self.rotation_angle) * 50, self.y + math.sin(self.rotation_angle) * 50))
+    def draw_player(self,screen, pos_x, pos_y, minimap_size):
+        size = minimap_size / TILESIZE
+        player_mini_x = pos_x + (self.x * size)
+        player_mini_y = pos_y + (self.y * size)
+        radius = 2
+        pygame.draw.circle(screen, (0,255,40), (player_mini_x, player_mini_y), radius)
+
+        pygame.draw.line(screen,(255, 0, 0), (player_mini_x, player_mini_y), (player_mini_x + math.cos(self.rotation_angle) * radius, player_mini_y + math.sin(self.rotation_angle) * radius))

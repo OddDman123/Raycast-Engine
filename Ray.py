@@ -27,6 +27,7 @@ class Ray:
         self.wall_hit_y = 0
 
         self.distance = 0
+        self.verticle = False
 
     def cast(self):
         ## Check Horizontol collisions
@@ -39,7 +40,7 @@ class Ray:
         first_intersection_y = None
 
         if self.is_facing_up:
-            first_intersection_y = ((self.player.y // TILESIZE) * TILESIZE) - 1
+            first_intersection_y = ((self.player.y // TILESIZE) * TILESIZE) - 0.01
         elif self.is_facing_down:
             first_intersection_y = ((self.player.y // TILESIZE) * TILESIZE) + TILESIZE
 
@@ -58,8 +59,8 @@ class Ray:
         
         xa = ya / math.tan(self.ray_angle)
 
-        while (next_horizontal_x <= WINDOW_WIDTH and next_horizontal_x >= 0 and 
-               next_horizontal_y <= WINDOW_HEIGHT and next_horizontal_y >= 0):
+        while (next_horizontal_x < WINDOW_WIDTH and next_horizontal_x >= 0 and 
+               next_horizontal_y < WINDOW_HEIGHT and next_horizontal_y >= 0):
             
             if self.map.has_wall_at(next_horizontal_x,next_horizontal_y):
                 found_horizontal_wall = True
@@ -79,7 +80,7 @@ class Ray:
         if self.is_facing_right:
             first_intersection_x = ((self.player.x // TILESIZE) * TILESIZE) + TILESIZE
         elif self.is_facing_left:
-            first_intersection_x = ((self.player.x // TILESIZE) * TILESIZE) - 1
+            first_intersection_x = ((self.player.x // TILESIZE) * TILESIZE) - 0.01
         
         first_intersection_y = self.player.y + (first_intersection_x - self.player.x) * math.tan(self.ray_angle)
 
@@ -111,7 +112,6 @@ class Ray:
         
         if found_horizontal_wall:
             horizontal_dist = distance_between(self.player.x, self.player.y, horizontal_hit_x, horizontal_hit_y)
-            
         else:
             horizontal_dist = 9999
         
@@ -125,11 +125,13 @@ class Ray:
         if horizontal_dist < vertical_dist:
             self.wall_hit_x = horizontal_hit_x
             self.wall_hit_y = horizontal_hit_y
+            
             self.distance = horizontal_dist
         
         elif vertical_dist < horizontal_dist:
             self.wall_hit_x = vertical_hit_x
             self.wall_hit_y = vertical_hit_y
+            self.verticle = True
             self.distance = vertical_dist
         
         self.distance *= math.cos(self.player.rotation_angle - self.ray_angle)

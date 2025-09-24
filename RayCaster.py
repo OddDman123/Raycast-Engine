@@ -19,18 +19,33 @@ class Raycaster:
 
             ray_angle += FOV / (NUM_RAYS - 1)  
 
-    def drawAllRays(self, screen):
+    def drawAllRays(self, screen, texture):
         counter = 0
         
         for ray in self.rays:
             # ray.draw_ray(screen)
-
-            line_height = (32 / ray.distance) * 415
+            if ray.distance != 0:
+                line_height = (32 / ray.distance) * 415
+            else:
+                line_height = 0
 
             draw_begin = (WINDOW_HEIGHT / 2) - (line_height / 2)
-            draw_end = line_height
+            # draw_end = line_height
+            
 
-            pygame.draw.rect(screen, (0,255,0), (counter * RES, draw_begin, RES, draw_end))
+            wall_percent = int((ray.wall_hit_x % TILESIZE)) / TILESIZE
+            if ray.verticle:
+                wall_percent = int((ray.wall_hit_y % TILESIZE)) / TILESIZE
+
+            texture_x =  (texture.get_width() * wall_percent)
+            RES / TILESIZE
+            texture_slice = texture.subsurface((texture_x, 0, 1, texture.get_height()))
+
+            scaled_texture_slice = pygame.transform.scale(texture_slice, (1, line_height))
+
+            screen.blit(scaled_texture_slice, (counter * RES, draw_begin))
+
+            #pygame.draw.rect(screen, (0,255,0), (counter * RES, draw_begin, RES, draw_end))
             
             counter += 1
     
