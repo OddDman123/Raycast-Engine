@@ -138,6 +138,7 @@ class Ray:
         self.color *= (LIGHTLEVEL / self.distance)
         if self.color > 255:
             self.color = 255
+        
         self.distance *= math.cos(self.player.rotation_angle - self.ray_angle)
 
     def draw_ray(self, screen):
