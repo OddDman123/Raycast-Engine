@@ -61,7 +61,7 @@ while True:
 
     raycaster.drawAllRays(screen, wall_texture)
 
-    isaac.draw_isaac(screen)
+    isaac.draw_isaac(screen, raycaster.get_z_buffer())
     
     map.draw_map(screen, minimap_x, minimap_y, minimap_size)
     isaac.draw_minimap_isaac(screen, minimap_x, minimap_y, minimap_size)

@@ -11,7 +11,7 @@ WINDOW_HEIGHT = ROWS * TILESIZE
 ##Need to convert Degrees to Radians
 FOV = 60 * (math.pi / 180)
 
-RES = 4
+RES = 1
 NUM_RAYS = WINDOW_WIDTH // RES
 FPS = 60
 

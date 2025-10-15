@@ -40,44 +40,17 @@ class Isaac():
 
 
 
-    def draw_isaac(self, screen : pygame.Surface):
-        # mouse = pygame.mouse.get_pos()
-        # sprite_size = (self.sprite.get_width(), self.sprite.get_height())
-
-        # scaling_y = self.sprite.get_height() * abs((mouse[1] - WINDOW_HEIGHT / 2) / WINDOW_HEIGHT / 2)
-        # scaling_x = self.sprite.get_width() * abs((mouse[1] - WINDOW_HEIGHT / 2) / WINDOW_HEIGHT / 2)
-
-        # scaled_isaac = pygame.transform.scale(self.sprite,(scaling_x, scaling_y))
-
-        # screen.blit(scaled_isaac, (mouse[0] - scaling_x / 2, mouse[1] - scaling_y / 2))
-
-        # draw_begin = (WINDOW_HEIGHT / 2) - (self.sprite.get_height() / 2)
-
-        # nx = self.x - self.player.x
-        # ny = self.x - self.player.y
-
-        # nx = nx * math.cos(self.player.rotation_angle) - ny * math.sin(self.player.rotation_angle)
-        # ny = nx * math.sin(self.player.rotation_angle) + ny * math.cos(self.player.rotation_angle)
-
-        # maxfov = (WINDOW_WIDTH / 2) / math.tan(FOV / 2)
-        # screen_x = nx * (maxfov / ny)
-        # sprite_height = WALLHEIGHT * (maxfov / ny)
-        
-        # scaling_y = self.sprite.get_height() * abs((sprite_height - WINDOW_HEIGHT / 2) / WINDOW_HEIGHT / 2)
-        # scaling_x = self.sprite.get_width() * abs((sprite_height - WINDOW_HEIGHT / 2) / WINDOW_HEIGHT / 2)
-
-        # scaled_isaac = pygame.transform.scale(self.sprite,(scaling_x, scaling_y))
-        
-        # # draw_begin = (WINDOW_HEIGHT / 2) - (sprite_height / 2)
-        
-        # screen.blit(scaled_isaac, (screen_x , sprite_height))
-
+    def draw_isaac(self, screen : pygame.Surface, zbuffer : list):
+        ##Method 2
         sprite_x = float(self.x - self.player.x)
         sprite_y = float(self.y - self.player.y)
-        planeX = self.player.planeX
-        planeY = self.player.planeY
+
         dirx = math.cos(self.player.rotation_angle)
         diry = math.sin(self.player.rotation_angle)
+        fov = 0.60  # Or adjust for desired FOV
+        planeX = -diry * fov
+        planeY = dirx * fov
+        scale_factor = 20.0
         h = WINDOW_HEIGHT
         w = WINDOW_WIDTH
 
@@ -86,43 +59,72 @@ class Isaac():
         transformX = invDet * (diry * sprite_x - dirx * sprite_y)
         transformY = invDet * (-planeY * sprite_x + planeX * sprite_y)
 
-        # print(dirx, diry, invDet, transformX, transformY)
-
         spriteScreenX = int((w / 2) * (1 + transformX / transformY))
 
-        spriteHeight = abs(int(self.sprite.get_height() / (transformY))) #using 'transformY' instead of the real distance prevents fisheye
-        #calculate lowest and highest pixel to fill in current stripe
-        drawStartY = -spriteHeight / 2 + h / 2
-        if(drawStartY < 0): 
-            drawStartY = 0
-        drawEndY = spriteHeight / 2 + h / 2
+        if transformY <= 0:
+            return
+        spriteHeight = abs(int(self.sprite.get_height() * scale_factor / (transformY))) #using 'transformY' instead of the real distance prevents fisheye
+        
+       
+
+        drawEndY = int(min(WINDOW_HEIGHT - 1, spriteHeight / 2 + WINDOW_HEIGHT / 2))
         if(drawEndY >= h):
             drawEndY = h - 1
-        
-        spriteWidth = abs( int (self.sprite.get_height() / (transformY)))
-        drawStartX = -spriteWidth / 2 + spriteScreenX
+        drawStartY = drawEndY - spriteHeight
+
+
+        spriteWidth = abs( int (self.sprite.get_width() * scale_factor/ (transformY)))
+
+        drawStartX = int(-spriteWidth / 2 + spriteScreenX)
         if(drawStartX < 0):
             drawStartX = 0
-        drawEndX = spriteWidth / 2 + spriteScreenX
+        drawEndX = int(spriteWidth / 2 + spriteScreenX)
         if (drawEndX >= w):
             drawEndX = w - 1
 
-        # scaling_y = self.sprite.get_height() * abs((transformY - WINDOW_HEIGHT / 2) / WINDOW_HEIGHT / 2)
-        # scaling_x = self.sprite.get_width() * abs((transformY - WINDOW_HEIGHT / 2) / WINDOW_HEIGHT / 2)
-        # scaled_isaac = pygame.transform.scale(self.sprite,(scaling_x, scaling_y))
-        # print(scaling_x, scaling_y)
-        # for strip in range(int(round(drawStartX)), int(round(drawEndX))):
-        #     texX = int((256 * (strip - (-spriteWidth / 2 + spriteScreenX)) * 4 / spriteWidth) / 256)
-        #         #the conditions in the if are:
-        #         ##1) it's in front of camera plane so you don't see things behind you
-        #         ##2) it's on the surface (left)
-        #         ##3) it's on the surface (right)
-        #         ##4) ZBuffer, with perpendicular distance
-        #     if(transformY > 0 and strip > 0 and strip < w): #and transformY < zBuffer[stripe]):
-        screen.blit(pygame.transform.scale(self.sprite, (spriteWidth , spriteHeight)), (spriteScreenX, drawEndY))
-        # scaled_isaac = pygame.transform.scale(self.sprite, (spriteWidth, spriteHeight))
 
-        # screen.blit(scaled_isaac, (spriteScreenX, drawStartY))
+        # screen.blit(pygame.transform.scale(self.sprite, (spriteWidth , spriteHeight)), (spriteScreenX, drawStartY))
+
+        
+        sprite_texture = self.sprite.convert_alpha()
+        texture_width = self.sprite.get_width()
+        texture_height = self.sprite.get_height()
+
+        for stripe in range(drawStartX, drawEndX):
+
+            # Draw sprite pixel/column
+            if (0 <= stripe < WINDOW_WIDTH and transformY > 0 and transformY < zbuffer[stripe]):
+                # Texture X coordinate (clamped)
+                texX = int((stripe - (-spriteWidth / 2 + spriteScreenX)) * texture_width / spriteWidth)
+                texX = max(0, min(texture_width - 1, texX))
+
+                # Create a 1px wide vertical strip surface
+                strip_height = drawEndY - drawStartY
+                if strip_height <= 0:
+                    continue  # skip degenerate strips
+
+                vertical_strip = pygame.Surface((1, strip_height), pygame.SRCALPHA)
+
+                for y in range(strip_height):
+                    screen_y = y + drawStartY  # actual Y position on screen
+                    d = screen_y * 256 - WINDOW_HEIGHT * 128 + spriteHeight * 128
+                    texY = int((d * texture_height) / spriteHeight / 256)
+                    texY = max(0, min(texture_height - 1, texY))
+
+                    # Get the pixel from the sprite texture
+                    color = sprite_texture.get_at((texX, texY))
+
+                    # Skip transparent pixels
+                    if color.a != 0:
+                        vertical_strip.set_at((0, y), color)
+
+                # Draw the strip at the current screen position
+                screen.blit(vertical_strip, (stripe, drawStartY))
+
+
+
+
+
 
 
 

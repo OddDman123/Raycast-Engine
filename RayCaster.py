@@ -9,7 +9,11 @@ class Raycaster:
         self.player = player
         self.map = map
         self.fov = FOV
+        self.zbuffer = [0] * WINDOW_WIDTH
 
+    def get_z_buffer(self) -> list:
+        return self.zbuffer
+    
     def castAllRays(self):
         self.rays = []
         # ray_angle = (self.player.rotation_angle - self.fov / 2)
@@ -23,6 +27,8 @@ class Raycaster:
             ray.cast()
             self.rays.append(ray)
 
+            self.zbuffer[i] = ray.distance
+            
             # ray_angle += self.fov / (NUM_RAYS - 1)
             xx += (WINDOW_WIDTH / NUM_RAYS)  
 
@@ -35,6 +41,8 @@ class Raycaster:
         for ray in self.rays:
             # ray.draw_ray(screen)
             maxfov = (WINDOW_WIDTH / 2) / math.tan(self.fov / 2)
+
+            
 
             if ray.distance > 0:
                 line_height = (maxfov / ray.distance) * WALLHEIGHT
